@@ -1,9 +1,13 @@
 name: Build AdAway APK
 
+# Trigger: যখন master branch এ push হবে
 on:
   push:
     branches:
-      - main
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -11,18 +15,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout code
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    # 2️⃣ Setup JDK (Java 11)
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
+        distribution: 'temurin'
         java-version: '11'
 
-    - name: Build APK
-      run: ./gradlew assembleRelease
+    # 3️⃣ Install Android SDK & Build Tools
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 33
+        build-tools: 33.0.2
 
-    - name: Upload APK
+    # 4️⃣ Make Gradlew executable
+    - name: Grant execute permission for Gradlew
+      run: chmod +x ./gradlew
+
+    # 5️⃣ Clean & Build Release APK
+    - name: Build Release APK
+      run: ./gradlew clean assembleRelease
+
+    # 6️⃣ Upload APK as Artifact
+    - name: Upload Release APK
       uses: actions/upload-artifact@v3
       with:
         name: AdAway-release-apk
